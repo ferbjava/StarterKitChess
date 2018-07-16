@@ -1,5 +1,6 @@
 package com.capgemini.chess.algorithms.implementation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -233,8 +234,83 @@ public class BoardManager {
 
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 
+		//Variables needed to define move
+		Move move=new Move();
+		Piece movingPiece=board.getPieceAt(from);
+		Piece targetPiece=board.getPieceAt(to);
+		MoveType moveType=null;
+		
+		//Translation in local coordinates system
+		Coordinate translation=new Coordinate(to.getX()-from.getX(),to.getY()-from.getY());
+		
+		//Setting initial values for fields
+		move.setFrom(from);
+		move.setTo(to);
+		move.setMovedPiece(movingPiece);
+		move.setType(moveType);
+		
+		//Checking if start field is empty
+		if(movingPiece==null){
+			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+		
+		//Checking if figure belong to recent player
+		Color lastMovedPieceColor=Color.BLACK;
+		int movesDone=board.getMoveHistory().size();
+		if(movesDone>0){
+			lastMovedPieceColor=board.getMoveHistory().get(board.getMoveHistory().size()-1).getMovedPiece().getColor();
+		}
+		if(movingPiece.getColor()==lastMovedPieceColor){
+			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+		
+		//Generate for figure all possible moves
+		MoveCreator moveCreator = new MoveCreator();
+		moveCreator.baseMoves(movingPiece);
+		
+		ArrayList<PossibleMove> possibleMoves=new ArrayList<PossibleMove>();
+		possibleMoves.addAll(moveCreator.getPossibleMoves());
+
+		//Checking if given move is available on list of the all possible moves
+		boolean isPossible=false;
+		int numberOfPossibleMoves=possibleMoves.size();
+		for(int i=0;i<numberOfPossibleMoves;i++){
+			if((translation.getX()==possibleMoves.get(i).getX()&&(translation.getY()==possibleMoves.get(i).getY()))){
+				move.setType(possibleMoves.get(i).getmType());
+				isPossible=true;
+				break;
+			}
+		}
+		
+		if(!isPossible){
+			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+		
+		//Checking geometric conditions (removing moves out of the board range)
+		int i=0;
+		while (i<numberOfPossibleMoves){
+			int globalX=translation.getX()+possibleMoves.get(i).getX();
+			int globalY=translation.getY()+possibleMoves.get(i).getY();
+			if((globalX<0||globalX>7)&&(globalY<0||globalY>7)){
+				possibleMoves.remove(i);
+			}else{
+				numberOfPossibleMoves=possibleMoves.size();
+				i++;
+			}
+		}
+		
+		//Checking situation of the field
 		// TODO please add implementation here
+		
+		
+		
+		//If there are still possible moves then return recent move
+		if(numberOfPossibleMoves>0){
+			return move;
+		}
+		
 		return null;
+		
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
