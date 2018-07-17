@@ -234,25 +234,27 @@ public class BoardManager {
 
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 
-		//Variables needed to define move
-		Move move=new Move();
-		Piece movingPiece=board.getPieceAt(from);
-		Piece targetPiece=board.getPieceAt(to);
-		MoveType moveType=null;
-		
-		//Translation in local coordinates system
-		Coordinate translation=new Coordinate(to.getX()-from.getX(),to.getY()-from.getY());
+		// Checking if field is on board
+		if ((from.getX() < 0 || from.getX() > 7) || (from.getY() < 0 || from.getY() > 7)) {
+			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+
+		// Checking if start field is empty
+		Piece movingPiece = board.getPieceAt(from);
+		if (movingPiece == null) {
+			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+
+		// Variables needed to define move
+		Move move = new Move();
+		Piece targetPiece = board.getPieceAt(to);
+		MoveType moveType = null;
 		
 		//Setting initial values for fields
 		move.setFrom(from);
 		move.setTo(to);
 		move.setMovedPiece(movingPiece);
 		move.setType(moveType);
-		
-		//Checking if start field is empty
-		if(movingPiece==null){
-			throw new InvalidMoveException("InvalidMoveException: ");
-		}
 		
 		//Checking if figure belong to recent player
 		Color lastMovedPieceColor=Color.BLACK;
@@ -263,53 +265,40 @@ public class BoardManager {
 		if(movingPiece.getColor()==lastMovedPieceColor){
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
+		Color myColor=movingPiece.getColor();
 		
-		//Generate for figure all possible moves
+		
+		
+		
+		
+		//Generate for recent figure all possible moves
 		MoveCreator moveCreator = new MoveCreator();
 		moveCreator.baseMoves(movingPiece);
-		
-		ArrayList<PossibleMove> possibleMoves=new ArrayList<PossibleMove>();
-		possibleMoves.addAll(moveCreator.getPossibleMoves());
 
 		//Checking if given move is available on list of the all possible moves
-		boolean isPossible=false;
-		int numberOfPossibleMoves=possibleMoves.size();
-		for(int i=0;i<numberOfPossibleMoves;i++){
-			if((translation.getX()==possibleMoves.get(i).getX()&&(translation.getY()==possibleMoves.get(i).getY()))){
-				move.setType(possibleMoves.get(i).getmType());
-				isPossible=true;
-				break;
-			}
-		}
-		
-		if(!isPossible){
+		if(!moveCreator.containMove(from, to)){
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 		
 		//Checking geometric conditions (removing moves out of the board range)
-		int i=0;
-		while (i<numberOfPossibleMoves){
-			int globalX=translation.getX()+possibleMoves.get(i).getX();
-			int globalY=translation.getY()+possibleMoves.get(i).getY();
-			if((globalX<0||globalX>7)&&(globalY<0||globalY>7)){
-				possibleMoves.remove(i);
-			}else{
-				numberOfPossibleMoves=possibleMoves.size();
-				i++;
-			}
+		moveCreator.geometricCond(from);
+		if(!(from.getY()==1||from.getY()==6)&&movingPiece.getType()==PieceType.PAWN){
+			moveCreator.removePawnDoubleAttack();
+		}
+		if(!moveCreator.containMove(from, to)){
+			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 		
 		//Checking situation of the field
-		// TODO please add implementation here
-		
-		
-		
-		//If there are still possible moves then return recent move
-		if(numberOfPossibleMoves>0){
-			return move;
+		moveCreator.boardCond(board, from, myColor);
+		if(!moveCreator.containMove(from, to)){
+			throw new InvalidMoveException("InvalidMoveException: ");
 		}
+		targetPiece=moveCreator.getMovePiece(from, to);
+		move.setType(moveCreator.getMoveType(from, to));
 		
-		return null;
+		return move;
+//		return null;
 		
 	}
 

@@ -1,19 +1,23 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import com.capgemini.chess.algorithms.data.enums.MoveType;
-import com.capgemini.chess.algorithms.data.enums.PieceType;
+import com.capgemini.chess.algorithms.data.enums.Piece;
 
 public class PossibleMove {
 
 	private int xMove;
 	private int yMove;
 	private MoveType mType;
-	private PieceType targetPiece;
+	private Piece targetPiece;
 
-	public PossibleMove(int xMove, int yMove, MoveType mType, PieceType targetPiece) {
+	public PossibleMove(int xMove, int yMove, MoveType mType, Piece targetPiece) {
 		this.setX(xMove);
 		this.setY(yMove);
 		this.setmType(mType);
+		this.setTargetPiece(targetPiece);
+	}
+
+	public PossibleMove(Piece targetPiece) {
 		this.setTargetPiece(targetPiece);
 	}
 
@@ -41,11 +45,11 @@ public class PossibleMove {
 		this.mType = mType;
 	}
 
-	public PieceType getTargetPiece() {
+	public Piece getTargetPiece() {
 		return targetPiece;
 	}
 
-	public void setTargetPiece(PieceType targetPiece) {
+	public void setTargetPiece(Piece targetPiece) {
 		this.targetPiece = targetPiece;
 	}
 
