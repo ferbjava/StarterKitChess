@@ -245,61 +245,55 @@ public class BoardManager {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 
-		// Variables needed to define move
-		Move move = new Move();
-		Piece targetPiece = board.getPieceAt(to);
-		MoveType moveType = null;
-		
-		//Setting initial values for fields
-		move.setFrom(from);
-		move.setTo(to);
-		move.setMovedPiece(movingPiece);
-		move.setType(moveType);
-		
-		//Checking if figure belong to recent player
-		Color lastMovedPieceColor=Color.BLACK;
-		int movesDone=board.getMoveHistory().size();
-		if(movesDone>0){
-			lastMovedPieceColor=board.getMoveHistory().get(board.getMoveHistory().size()-1).getMovedPiece().getColor();
-		}
-		if(movingPiece.getColor()==lastMovedPieceColor){
+		// Checking if figure belong to recent player
+		Color recentColor = calculateNextMoveColor();
+		if (movingPiece.getColor() != recentColor) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
-		Color myColor=movingPiece.getColor();
 		
+//		CheckingMoves checking=new CheckingMoves(board, from);
+//		MoveCreator generatedMoves=checking.generateMoves();
+//		generatedMoves.containMove(from, to);
 		
-		
-		
-		
-		//Generate for recent figure all possible moves
-		MoveCreator moveCreator = new MoveCreator();
-		moveCreator.baseMoves(movingPiece);
+		//tu powinna sie zaczynac zewnetrzna metoda
+		// Generate for recent figure all possible moves
+		MoveCreator movesCreator = new MoveCreator();
+		movesCreator.baseMoves(movingPiece);
 
-		//Checking if given move is available on list of the all possible moves
-		if(!moveCreator.containMove(from, to)){
+		// Checking geometric conditions (removing moves out of the board range)
+		movesCreator.geometricCond(from);
+		
+		// Removing double ATTACK if next move for PAWN
+		if (!(from.getY() == 1 || from.getY() == 6) && movingPiece.getType() == PieceType.PAWN) {
+			movesCreator.removePawnDoubleAttack();
+		}
+
+		// Checking situation of the field
+		movesCreator.boardCond(board, from, movingPiece.getColor());
+
+		// Removing invalid moves for PAWN
+		if (movingPiece.getType() == PieceType.PAWN) {
+			movesCreator.removeInvalidPawnMoves();
+		}
+		//Tu koncze zewnetrzna metode
+		
+		
+		
+		// Checking if given move is available on list of the remaining moves
+		if (!movesCreator.containMove(from, to)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
-		
-		//Checking geometric conditions (removing moves out of the board range)
-		moveCreator.geometricCond(from);
-		if(!(from.getY()==1||from.getY()==6)&&movingPiece.getType()==PieceType.PAWN){
-			moveCreator.removePawnDoubleAttack();
-		}
-		if(!moveCreator.containMove(from, to)){
-			throw new InvalidMoveException("InvalidMoveException: ");
-		}
-		
-		//Checking situation of the field
-		moveCreator.boardCond(board, from, myColor);
-		if(!moveCreator.containMove(from, to)){
-			throw new InvalidMoveException("InvalidMoveException: ");
-		}
-		targetPiece=moveCreator.getMovePiece(from, to);
-		move.setType(moveCreator.getMoveType(from, to));
-		
-		return move;
-//		return null;
-		
+
+		// Setting values for fields of final Move
+		Move correctMove = new Move();
+		correctMove.setFrom(from);
+		correctMove.setTo(to);
+		correctMove.setMovedPiece(movingPiece);
+		correctMove.setType(movesCreator.getMoveType(from, to));
+
+		return correctMove;
+		// return null;
+
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
