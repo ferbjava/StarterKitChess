@@ -1,7 +1,10 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
 import com.capgemini.chess.algorithms.data.enums.Piece;
+import com.capgemini.chess.algorithms.data.enums.PieceType;
 import com.capgemini.chess.algorithms.data.generated.Board;
 import com.capgemini.chess.algorithms.data.Coordinate;
 import com.capgemini.chess.algorithms.data.enums.Color;
@@ -81,7 +84,7 @@ public class MoveCreator {
 	public void removePawnDoubleAttack() {
 		int i = 0;
 		while (i < possibleMoves.size()) {
-			if ((possibleMoves.get(i).getX() == 0) && (possibleMoves.get(i).getY() == 2)) {
+			if ((possibleMoves.get(i).getX() == 0) && (Math.abs(possibleMoves.get(i).getY()) == 2)) {
 				possibleMoves.remove(i);
 			} else {
 				i++;
@@ -90,14 +93,13 @@ public class MoveCreator {
 	}
 
 	public void removeInvalidPawnMoves() {
-		int i = 0;
-		while (i < possibleMoves.size()) {
-			if ((possibleMoves.get(i).getX() != 0) && (possibleMoves.get(i).getTargetPiece() == null)) {
-				possibleMoves.remove(i);
-			} else if ((possibleMoves.get(i).getX() == 0) && (possibleMoves.get(i).getmType() == MoveType.CAPTURE)) {
-				possibleMoves.remove(i);
-			} else {
-				i++;
+		Iterator<PossibleMove> movesIterator=possibleMoves.iterator();
+		while(movesIterator.hasNext()){
+			PossibleMove move=movesIterator.next();
+			if (move.getX() != 0 && move.getTargetPiece() == null) {
+				movesIterator.remove();
+			} else if (move.getX() == 0 && move.getmType() == MoveType.CAPTURE) {
+				movesIterator.remove();
 			}
 		}
 	}
@@ -137,5 +139,16 @@ public class MoveCreator {
 			}
 		}
 		return null;
+	}
+
+	public boolean isKingCapture() {
+		for (int i = 0; i < possibleMoves.size(); i++) {
+			if(possibleMoves.get(i).getTargetPiece()==null){
+				continue;
+			}else if(possibleMoves.get(i).getTargetPiece().getType() == PieceType.KING){
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -251,37 +251,18 @@ public class BoardManager {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 		
-//		CheckingMoves checking=new CheckingMoves(board, from);
-//		MoveCreator generatedMoves=checking.generateMoves();
-//		generatedMoves.containMove(from, to);
-		
-		//tu powinna sie zaczynac zewnetrzna metoda
-		// Generate for recent figure all possible moves
-		MoveCreator movesCreator = new MoveCreator();
-		movesCreator.baseMoves(movingPiece);
-
-		// Checking geometric conditions (removing moves out of the board range)
-		movesCreator.geometricCond(from);
-		
-		// Removing double ATTACK if next move for PAWN
-		if (!(from.getY() == 1 || from.getY() == 6) && movingPiece.getType() == PieceType.PAWN) {
-			movesCreator.removePawnDoubleAttack();
-		}
-
-		// Checking situation of the field
-		movesCreator.boardCond(board, from, movingPiece.getColor());
-
-		// Removing invalid moves for PAWN
-		if (movingPiece.getType() == PieceType.PAWN) {
-			movesCreator.removeInvalidPawnMoves();
-		}
-		//Tu koncze zewnetrzna metode
-		
+		CheckingMoves checking=new CheckingMoves(board, from);
+		MoveCreator generatedMoves=checking.generateMoves();
 		
 		
 		// Checking if given move is available on list of the remaining moves
-		if (!movesCreator.containMove(from, to)) {
+		if (!generatedMoves.containMove(from, to)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
+		}
+		
+		boolean kingInCheck=isKingInCheck(recentColor);
+		if(kingInCheck){
+			throw new KingInCheckException();
 		}
 
 		// Setting values for fields of final Move
@@ -289,7 +270,7 @@ public class BoardManager {
 		correctMove.setFrom(from);
 		correctMove.setTo(to);
 		correctMove.setMovedPiece(movingPiece);
-		correctMove.setType(movesCreator.getMoveType(from, to));
+		correctMove.setType(generatedMoves.getMoveType(from, to));
 
 		return correctMove;
 		// return null;
@@ -299,6 +280,29 @@ public class BoardManager {
 	private boolean isKingInCheck(Color kingColor) {
 
 		// TODO please add implementation here
+		int piecesCounter = 0;
+		for (int i = 0; i < Board.SIZE; i++) {
+			for (int j = 0; j < Board.SIZE; j++) {
+				Piece movingPiece = board.getPieceAt(new Coordinate(i, j));
+				if (movingPiece == null) {
+					continue;
+				} else {
+					if (movingPiece.getColor() == kingColor) {
+						continue;
+					} else {
+						Coordinate from = new Coordinate(i, j);
+						CheckingMoves checking = new CheckingMoves(board, from);
+						MoveCreator generatedMoves = checking.generateMoves();
+						piecesCounter++;
+						if (generatedMoves.isKingCapture()) {
+							return true;
+						}else if(piecesCounter>16){
+							break;
+						}
+					}
+				}
+			}
+		}
 		return false;
 	}
 

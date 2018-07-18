@@ -33,7 +33,7 @@ public class BasicMoves {
 			break;
 		case QUEEN:
 			getBasicMoves().clear();
-			addKnightMoves();
+			addRookMoves();
 			addBishopMoves();
 			break;
 		case KING:
