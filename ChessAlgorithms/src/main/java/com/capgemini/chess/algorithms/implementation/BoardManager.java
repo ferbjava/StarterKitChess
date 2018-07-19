@@ -1,9 +1,6 @@
 package com.capgemini.chess.algorithms.implementation;
 
-import java.text.Normalizer.Form;
-import java.time.format.TextStyle;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
@@ -26,7 +23,7 @@ import com.capgemini.chess.algorithms.implementation.exceptions.KingInCheckExcep
 public class BoardManager {
 
 	private Board board = new Board();
-	private MoveCoordinates probeMove=new MoveCoordinates();
+	private Move probeMove=new Move();
 
 	public BoardManager() {
 		initBoard();
@@ -254,27 +251,26 @@ public class BoardManager {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 		
-		probeMove.setStart(new Coordinate(-1,-1));
-		probeMove.setStop(new Coordinate(-1,-1));
+		probeMove.setFrom(new Coordinate(-1, -1));
+		probeMove.setTo(new Coordinate(-1, -1));
 		
 		CheckingMoves checking=new CheckingMoves(board, from, probeMove);
 		MoveCreator generatedMoves=checking.generateMoves();
-		
 		
 		// Checking if given move is available on list of the remaining moves
 		if (!generatedMoves.containMove(from, to)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
-		
-		probeMove.setStart(from);
-		probeMove.setStop(to);
+
+		probeMove.setFrom(from);
+		probeMove.setTo(to);
+		probeMove.setMovedPiece(movingPiece);
 		
 		boolean kingInCheck=isKingInCheck(recentColor);
 		if(kingInCheck){
 			throw new KingInCheckException();
 		}
 
-		// Setting values for fields of final Move
 		Move correctMove = new Move();
 		correctMove.setFrom(from);
 		correctMove.setTo(to);
@@ -282,13 +278,11 @@ public class BoardManager {
 		correctMove.setType(generatedMoves.getMoveType(from, to));
 
 		return correctMove;
-		// return null;
-
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
-
 		int counter = 0;
+		
 		for (int i = 0; i < Board.SIZE; i++) {
 			for (int j = 0; j < Board.SIZE; j++) {
 				Coordinate from = new Coordinate(i, j);
@@ -306,64 +300,40 @@ public class BoardManager {
 			}
 		}
 		
-//		int piecesCounter = 0;
-//		for (int i = 0; i < Board.SIZE; i++) {
-//			for (int j = 0; j < Board.SIZE; j++) {
-//				Piece movingPiece = board.getPieceAt(new Coordinate(i, j));
-//				if (movingPiece == null) {
-//					continue;
-//				} else {
-//					if (movingPiece.getColor() == kingColor) {
-//						continue;
-//					} else {
-//						Coordinate from = new Coordinate(i, j);
-//						CheckingMoves checking = new CheckingMoves(board, from, moveCoord);
-//						MoveCreator generatedMoves = checking.generateMoves();
-//						piecesCounter++;
-//						if (generatedMoves.isKingCapture()) {
-//							return true;
-//						}else if(piecesCounter>=16){
-//							break;
-//						}
-//					}
-//				}
-//			}
-//		}
-		
 		return false;
 	}
 
 	private boolean isAnyMoveValid(Color nextMoveColor) {
+		int counter = 0;
+		
+		for (int i = 0; i < Board.SIZE; i++) {
+			for (int j = 0; j < Board.SIZE; j++) {
+				Coordinate from = new Coordinate(i, j);
+				Piece movingPiece = board.getPieceAt(from);
+				if (movingPiece != null && movingPiece.getColor() == nextMoveColor) {
+					CheckingMoves checking = new CheckingMoves(board, from, probeMove);
+					MoveCreator generatedMoves = checking.generateMoves();
+					
+					for (int k = 0; k < generatedMoves.numberMoves(); k++) {
+						int globalX = from.getX() + generatedMoves.getSelectedMove(k).getX();
+						int globalY = from.getY() + generatedMoves.getSelectedMove(k).getY();
+						Coordinate to = new Coordinate(globalX, globalY);
 
-		// TODO please add implementation here
-		int counter=0;
-		for(int i=0;i<Board.SIZE;i++){
-			for(int j=0;j<Board.SIZE;j++){
-				Coordinate from =new Coordinate(i, j);
-				Piece movingPiece=board.getPieceAt(from);
-				if(movingPiece!=null&&movingPiece.getColor()==nextMoveColor){
-					CheckingMoves checking=new CheckingMoves(board, from, probeMove);
-					MoveCreator generatedMoves=checking.generateMoves();
-					for(int k=0;k<generatedMoves.numberMoves();k++){
-						int globalX=from.getX()+generatedMoves.getSelectedMove(k).getX();
-						int globalY=from.getY()+generatedMoves.getSelectedMove(k).getY();
-						Coordinate to=new Coordinate(globalX, globalY);
-						probeMove.setStart(from);
-						probeMove.setStop(to);
-						boolean kingInCheck=isKingInCheck(nextMoveColor);
-						
+						probeMove.setFrom(from);
+						probeMove.setTo(to);
+						probeMove.setMovedPiece(movingPiece);
+
+						boolean kingInCheck = isKingInCheck(nextMoveColor);
 						counter++;
-						if(kingInCheck){
-							return false;
-						}else if(counter>=16){
+						if (!kingInCheck || counter >= 16) {
 							return true;
 						}
 					}
 				}
 			}
 		}
-		return true;
-//		return false;
+
+		return false;
 	}
 
 	private Color calculateNextMoveColor() {

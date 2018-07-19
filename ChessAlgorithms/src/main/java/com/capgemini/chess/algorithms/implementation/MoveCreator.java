@@ -7,6 +7,7 @@ import com.capgemini.chess.algorithms.data.enums.Piece;
 import com.capgemini.chess.algorithms.data.enums.PieceType;
 import com.capgemini.chess.algorithms.data.generated.Board;
 import com.capgemini.chess.algorithms.data.Coordinate;
+import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.enums.Color;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 
@@ -40,17 +41,17 @@ public class MoveCreator {
 		}
 	}
 	
-	public void boardCond(Board board, Coordinate start, Color recentColor, MoveCoordinates moveCoord) {
+	public void boardCond(Board board, Coordinate start, Color recentColor, Move probeMove) {
 		Piece targetPiece = null;
 		int i = 0;
 		while (i < possibleMoves.size()) {
 			int globalX = start.getX() + possibleMoves.get(i).getX();
 			int globalY = start.getY() + possibleMoves.get(i).getY();
 			Coordinate globalPos = new Coordinate(globalX, globalY);
-			if(globalPos.equals(moveCoord.getStart())){
+			if(globalPos.equals(probeMove.getFrom())){
 				targetPiece=null;
-			}else if(globalPos.equals(moveCoord.getStop())){
-				targetPiece=Piece.BLACK_PAWN;
+			}else if(globalPos.equals(probeMove.getTo())){
+				targetPiece=probeMove.getMovedPiece();
 			}else{
 				targetPiece = board.getPieceAt(globalPos);
 			}
@@ -121,13 +122,13 @@ public class MoveCreator {
 		return false;
 	}
 
-	public Piece getTargetPiece(int i) {
-		return possibleMoves.get(i).getTargetPiece();
+	public Piece getTargetPiece(int index) {
+		return possibleMoves.get(index).getTargetPiece();
 	}
 	
-	public Piece getTargetPiece(Coordinate start, Coordinate stop) {
-		int localX = stop.getX() - start.getX();
-		int localY = stop.getY() - start.getY();
+	public Piece getTargetPiece(Coordinate from, Coordinate to) {
+		int localX = to.getX() - from.getX();
+		int localY = to.getY() - from.getY();
 		for (int i = 0; i < possibleMoves.size(); i++) {
 			if ((localX == possibleMoves.get(i).getX()) && (localY == possibleMoves.get(i).getY())) {
 				return possibleMoves.get(i).getTargetPiece();
@@ -136,9 +137,9 @@ public class MoveCreator {
 		return null;
 	}
 	
-	public MoveType getMoveType(Coordinate start, Coordinate stop) {
-		int localX = stop.getX() - start.getX();
-		int localY = stop.getY() - start.getY();
+	public MoveType getMoveType(Coordinate from, Coordinate to) {
+		int localX = to.getX() - from.getX();
+		int localY = to.getY() - from.getY();
 		for (int i = 0; i < possibleMoves.size(); i++) {
 			if ((localX == possibleMoves.get(i).getX()) && (localY == possibleMoves.get(i).getY())) {
 				return possibleMoves.get(i).getmType();

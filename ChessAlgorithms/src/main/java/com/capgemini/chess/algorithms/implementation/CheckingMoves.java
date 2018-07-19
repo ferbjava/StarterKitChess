@@ -1,6 +1,7 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
+import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.enums.Piece;
 import com.capgemini.chess.algorithms.data.enums.PieceType;
 import com.capgemini.chess.algorithms.data.generated.Board;
@@ -8,12 +9,12 @@ import com.capgemini.chess.algorithms.data.generated.Board;
 public class CheckingMoves {
 	private Board board;
 	private Coordinate from;
-	private MoveCoordinates moveCoord;
+	private Move probeMove;
 	
-	public CheckingMoves(Board board, Coordinate from, MoveCoordinates moveCoord) {
+	public CheckingMoves(Board board, Coordinate from, Move probeMove) {
 		this.board=board;
 		this.from=from;
-		this.moveCoord=moveCoord;
+		this.probeMove=probeMove;
 	}
 	
 	public MoveCreator generateMoves(){
@@ -30,7 +31,7 @@ public class CheckingMoves {
 		}
 
 		// Checking situation of the field
-		movesCreator.boardCond(board, from, movingPiece.getColor(),moveCoord);
+		movesCreator.boardCond(board, from, movingPiece.getColor(),probeMove);
 
 		// Removing invalid moves for PAWN
 		if (movingPiece.getType() == PieceType.PAWN) {
