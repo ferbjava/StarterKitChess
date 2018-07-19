@@ -8,8 +8,8 @@ import com.capgemini.chess.algorithms.data.enums.Piece;
 import com.capgemini.chess.algorithms.data.enums.PieceType;
 
 public class BasicMoves {
-	private ArrayList<Coordinate> basicMoves=new ArrayList<Coordinate>(0);//=null;
-	
+	private ArrayList<Coordinate> basicMoves = new ArrayList<Coordinate>(0);// =null;
+
 	public BasicMoves(Piece piece) {
 		PieceType pieceType = piece.getType();
 		Color pieceColor = piece.getColor();
@@ -45,7 +45,7 @@ public class BasicMoves {
 			break;
 		}
 	}
-	
+
 	private void addPawnMoves(Color color) {
 		if (color == Color.WHITE) {
 			getBasicMoves().add(new Coordinate(0, 1));
@@ -59,7 +59,7 @@ public class BasicMoves {
 			getBasicMoves().add(new Coordinate(1, -1));
 		}
 	}
-	
+
 	private void addRookMoves() {
 		getBasicMoves().add(new Coordinate(1, 0));
 		getBasicMoves().add(new Coordinate(2, 0));
@@ -90,7 +90,7 @@ public class BasicMoves {
 		getBasicMoves().add(new Coordinate(0, 6));
 		getBasicMoves().add(new Coordinate(0, 7));
 	}
-	
+
 	private void addKnightMoves() {
 		getBasicMoves().add(new Coordinate(1, 2));
 		getBasicMoves().add(new Coordinate(2, 1));
@@ -101,7 +101,7 @@ public class BasicMoves {
 		getBasicMoves().add(new Coordinate(-2, 1));
 		getBasicMoves().add(new Coordinate(-1, 2));
 	}
-	
+
 	private void addBishopMoves() {
 		getBasicMoves().add(new Coordinate(1, 1));
 		getBasicMoves().add(new Coordinate(2, 2));
@@ -132,7 +132,7 @@ public class BasicMoves {
 		getBasicMoves().add(new Coordinate(-6, 6));
 		getBasicMoves().add(new Coordinate(-7, 7));
 	}
-	
+
 	private void addKingMoves() {
 		getBasicMoves().add(new Coordinate(1, 1));
 		getBasicMoves().add(new Coordinate(1, 0));
@@ -147,5 +147,5 @@ public class BasicMoves {
 	public ArrayList<Coordinate> getBasicMoves() {
 		return basicMoves;
 	}
-	
+
 }

@@ -17,10 +17,6 @@ public class PossibleMove {
 		this.setTargetPiece(targetPiece);
 	}
 
-	public PossibleMove(Piece targetPiece) {
-		this.setTargetPiece(targetPiece);
-	}
-
 	public int getX() {
 		return xMove;
 	}

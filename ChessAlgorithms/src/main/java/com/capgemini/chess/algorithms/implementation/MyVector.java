@@ -8,13 +8,13 @@ public class MyVector {
 		setX(x);
 		setY(y);
 	}
-	
-	public double length(){
-		return Math.sqrt(Math.pow(x, 2.0)+Math.pow(y,2.0));
+
+	public double length() {
+		return Math.sqrt(Math.pow(x, 2.0) + Math.pow(y, 2.0));
 	}
-	
-	public MyVector uVector(){
-		MyVector uVector= new MyVector(x/length(),y/length());
+
+	public MyVector uVector() {
+		MyVector uVector = new MyVector(x / length(), y / length());
 		return uVector;
 	}
 
@@ -33,17 +33,17 @@ public class MyVector {
 	public void setY(double y) {
 		this.y = y;
 	}
-	
-//	@Override
-	public boolean equals(Object obj){
-		if(this==obj)
+
+	// @Override
+	public boolean equals(Object obj) {
+		if (this == obj)
 			return true;
-		if(obj==null)
+		if (obj == null)
 			return false;
-		MyVector testObject=(MyVector) obj;
-		if(Math.abs(x-testObject.x)>0.001)
+		MyVector testObject = (MyVector) obj;
+		if (Math.abs(x - testObject.x) > 0.000001)
 			return false;
-		if(Math.abs(y-testObject.y)>0.001)
+		if (Math.abs(y - testObject.y) > 0.000001)
 			return false;
 		return true;
 	}

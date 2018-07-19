@@ -236,35 +236,33 @@ public class BoardManager {
 	 * 
 	 * @param from
 	 * @param to
-	 * @return correct move if all conditions are fulfilled
+	 * @return correct move if all conditions are fullfilled
 	 * @throws InvalidMoveException
 	 * @throws KingInCheckException
 	 */
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 
-		// Checking if field is on board
+		// Checking: 1)field is on board, 2) piece is on field, 3) piece belongs to recent player
 		if ((from.getX() < 0 || from.getX() >= Board.SIZE) || (from.getY() < 0 || from.getY() >= Board.SIZE)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 
-		// Checking if start field is empty
-		Piece movingPiece = board.getPieceAt(from);
-		if (movingPiece == null) {
+		Piece recentPiece = board.getPieceAt(from);
+		if (recentPiece == null) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 
-		// Checking if figure belong to recent player
 		Color recentColor = calculateNextMoveColor();
-		if (movingPiece.getColor() != recentColor) {
+		if (recentPiece.getColor() != recentColor) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
-		
+
 		probeMove.setFrom(new Coordinate(-1, -1));
 		probeMove.setTo(new Coordinate(-1, -1));
-		
-		CheckingMoves checking=new CheckingMoves(board, from, probeMove);
-		MoveCreator generatedMoves=checking.generateMoves();
-		
+
+		CheckingMoves checking = new CheckingMoves(board, from, probeMove);
+		MoveCreator generatedMoves = checking.generateMoves();
+
 		// Checking if given move is available on list of the remaining moves
 		if (!generatedMoves.containMove(from, to)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
@@ -272,30 +270,35 @@ public class BoardManager {
 
 		probeMove.setFrom(from);
 		probeMove.setTo(to);
-		probeMove.setMovedPiece(movingPiece);
-		
-		boolean kingInCheck=isKingInCheck(recentColor);
-		if(kingInCheck){
+		probeMove.setMovedPiece(recentPiece);
+
+		boolean kingInCheck = isKingInCheck(recentColor);
+		if (kingInCheck) {
 			throw new KingInCheckException();
 		}
 
 		Move correctMove = new Move();
 		correctMove.setFrom(from);
 		correctMove.setTo(to);
-		correctMove.setMovedPiece(movingPiece);
+		correctMove.setMovedPiece(recentPiece);
 		correctMove.setType(generatedMoves.getMoveType(from, to));
 
 		return correctMove;
 	}
 
+	/**
+	 * Method iterates over board and searching if any enemy piece could Capture King
+	 * @param kingColor
+	 * @return
+	 */
 	private boolean isKingInCheck(Color kingColor) {
 		int counter = 0;
-		
-		for (int i = 0; i < Board.SIZE; i++) {
-			for (int j = 0; j < Board.SIZE; j++) {
-				Coordinate from = new Coordinate(i, j);
-				Piece movingPiece = board.getPieceAt(from);
-				if (movingPiece != null && movingPiece.getColor() != kingColor) {
+
+		for (int x = 0; x < Board.SIZE; x++) {
+			for (int y = 0; y < Board.SIZE; y++) {
+				Coordinate from = new Coordinate(x, y);
+				Piece recentPiece = board.getPieceAt(from);
+				if (recentPiece != null && recentPiece.getColor() != kingColor) {
 					CheckingMoves checking = new CheckingMoves(board, from, probeMove);
 					MoveCreator generatedMoves = checking.generateMoves();
 					counter++;
@@ -307,26 +310,31 @@ public class BoardManager {
 				}
 			}
 		}
-		
+
 		return false;
 	}
 
+	/**
+	 * Method iterates over board searching any piece which could make move without own Check Mate
+	 * @param nextMoveColor
+	 * @return
+	 */
 	private boolean isAnyMoveValid(Color nextMoveColor) {
 		int counter = 0;
-		
-		for (int i = 0; i < Board.SIZE; i++) {
-			for (int j = 0; j < Board.SIZE; j++) {
-				Coordinate from = new Coordinate(i, j);
+
+		for (int x = 0; x < Board.SIZE; x++) {
+			for (int y = 0; y < Board.SIZE; y++) {
+				Coordinate from = new Coordinate(x, y);
 				Piece movingPiece = board.getPieceAt(from);
-				if (movingPiece != null && movingPiece.getColor() == nextMoveColor) {		
+				if (movingPiece != null && movingPiece.getColor() == nextMoveColor) {
 					probeMove.setFrom(new Coordinate(-1, -1));
 					probeMove.setTo(new Coordinate(-1, -1));
 					CheckingMoves checking = new CheckingMoves(board, from, probeMove);
 					MoveCreator generatedMoves = checking.generateMoves();
-					
-					for (int k = 0; k < generatedMoves.numberMoves(); k++) {
-						int globalX = from.getX() + generatedMoves.getSelectedMove(k).getX();
-						int globalY = from.getY() + generatedMoves.getSelectedMove(k).getY();
+
+					for (int i = 0; i < generatedMoves.numberMoves(); i++) {
+						int globalX = from.getX() + generatedMoves.getSelectedMove(i).getX();
+						int globalY = from.getY() + generatedMoves.getSelectedMove(i).getY();
 						Coordinate to = new Coordinate(globalX, globalY);
 
 						probeMove.setFrom(from);
@@ -334,7 +342,6 @@ public class BoardManager {
 						probeMove.setMovedPiece(movingPiece);
 
 						boolean kingInCheck = isKingInCheck(nextMoveColor);
-//						counter++;
 						if (!kingInCheck || counter >= 16) {
 							return true;
 						}
