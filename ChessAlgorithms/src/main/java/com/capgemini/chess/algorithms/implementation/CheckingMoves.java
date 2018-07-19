@@ -31,7 +31,7 @@ public class CheckingMoves {
 		}
 
 		// Checking situation of the field
-		movesCreator.boardCond(board, from, movingPiece.getColor(),probeMove);
+		movesCreator.boardCond(board, from,probeMove);
 
 		// Removing invalid moves for PAWN
 		if (movingPiece.getType() == PieceType.PAWN) {

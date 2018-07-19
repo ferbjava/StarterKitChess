@@ -34,7 +34,7 @@ public class MyVector {
 		this.y = y;
 	}
 	
-	@Override
+//	@Override
 	public boolean equals(Object obj){
 		if(this==obj)
 			return true;

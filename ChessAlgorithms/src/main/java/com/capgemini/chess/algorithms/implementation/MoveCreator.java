@@ -11,10 +11,19 @@ import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.enums.Color;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 
+/**
+ * 
+ * @author MKOTECKI
+ *
+ */
 public class MoveCreator {
 	
 	private ArrayList<PossibleMove> possibleMoves=new ArrayList<PossibleMove>(0);
 
+	/**
+	 * 
+	 * @param piece 
+	 */
 	public void baseMoves(Piece piece) {
 		BasicMoves basicMoves = new BasicMoves(piece);
 		for (int i = 0; i < basicMoves.getBasicMoves().size(); i++) {
@@ -30,10 +39,10 @@ public class MoveCreator {
 	
 	public void geometricCond(Coordinate start) {
 		int i = 0;
-		while (i < possibleMoves.size()) {
+		while (i < numberMoves()) {
 			int globalX = start.getX() + possibleMoves.get(i).getX();
 			int globalY = start.getY() + possibleMoves.get(i).getY();
-			if ((globalX < 0 || globalX > 7) || (globalY < 0 || globalY > 7)) {
+			if (globalX < 0 || globalX >= Board.SIZE || globalY < 0 || globalY >= Board.SIZE) {
 				possibleMoves.remove(i);
 			} else {
 				i++;
@@ -41,13 +50,15 @@ public class MoveCreator {
 		}
 	}
 	
-	public void boardCond(Board board, Coordinate start, Color recentColor, Move probeMove) {
+	public void boardCond(Board board, Coordinate start, Move probeMove) {
 		Piece targetPiece = null;
 		int i = 0;
-		while (i < possibleMoves.size()) {
+		while (i < numberMoves()) {
 			int globalX = start.getX() + possibleMoves.get(i).getX();
 			int globalY = start.getY() + possibleMoves.get(i).getY();
 			Coordinate globalPos = new Coordinate(globalX, globalY);
+			Color recentColor=board.getPieceAt(start).getColor();
+			
 			if(globalPos.equals(probeMove.getFrom())){
 				targetPiece=null;
 			}else if(globalPos.equals(probeMove.getTo())){
@@ -73,13 +84,9 @@ public class MoveCreator {
 	private void removeFollowers(int x, int y) {
 		MyVector thisVector = new MyVector((double) x, (double) y);
 		int i = 0;
-		while (i < possibleMoves.size()) {
+		while (i < numberMoves()) {
 			MyVector testVector = new MyVector((double) possibleMoves.get(i).getX(),
 					(double) possibleMoves.get(i).getY());
-			// MyVector thisUVector=thisVector.uVector();
-			// MyVector testUVector=testVector.uVector();
-			// double thisLength=thisVector.length();
-			// double testLength=testVector.length();
 			if ((thisVector.uVector().equals(testVector.uVector())) && (thisVector.length() < testVector.length())) {
 				possibleMoves.remove(i);
 			} else {
@@ -89,20 +96,19 @@ public class MoveCreator {
 	}
 
 	public void removePawnDoubleAttack() {
-		int i = 0;
-		while (i < possibleMoves.size()) {
-			if ((possibleMoves.get(i).getX() == 0) && (Math.abs(possibleMoves.get(i).getY()) == 2)) {
-				possibleMoves.remove(i);
-			} else {
-				i++;
+		Iterator<PossibleMove> movesIterator=possibleMoves.iterator();
+		while (movesIterator.hasNext()) {
+			PossibleMove move =movesIterator.next();
+			if (move.getX() == 0 && Math.abs(move.getY()) == 2) {
+				movesIterator.remove();
 			}
 		}
 	}
 
 	public void removeInvalidPawnMoves() {
-		Iterator<PossibleMove> movesIterator=possibleMoves.iterator();
-		while(movesIterator.hasNext()){
-			PossibleMove move=movesIterator.next();
+		Iterator<PossibleMove> movesIterator = possibleMoves.iterator();
+		while (movesIterator.hasNext()) {
+			PossibleMove move = movesIterator.next();
 			if (move.getX() != 0 && move.getTargetPiece() == null) {
 				movesIterator.remove();
 			} else if (move.getX() == 0 && move.getmType() == MoveType.CAPTURE) {
@@ -113,7 +119,7 @@ public class MoveCreator {
 
 	public boolean containMove(Coordinate start, Coordinate to) {
 		Coordinate translation = new Coordinate(to.getX() - start.getX(), to.getY() - start.getY());
-		for (int i = 0; i < possibleMoves.size(); i++) {
+		for (int i = 0; i < numberMoves(); i++) {
 			if ((translation.getX() == possibleMoves.get(i).getX())
 					&& (translation.getY() == possibleMoves.get(i).getY())) {
 				return true;
@@ -121,27 +127,12 @@ public class MoveCreator {
 		}
 		return false;
 	}
-
-	public Piece getTargetPiece(int index) {
-		return possibleMoves.get(index).getTargetPiece();
-	}
-	
-	public Piece getTargetPiece(Coordinate from, Coordinate to) {
-		int localX = to.getX() - from.getX();
-		int localY = to.getY() - from.getY();
-		for (int i = 0; i < possibleMoves.size(); i++) {
-			if ((localX == possibleMoves.get(i).getX()) && (localY == possibleMoves.get(i).getY())) {
-				return possibleMoves.get(i).getTargetPiece();
-			}
-		}
-		return null;
-	}
 	
 	public MoveType getMoveType(Coordinate from, Coordinate to) {
 		int localX = to.getX() - from.getX();
 		int localY = to.getY() - from.getY();
-		for (int i = 0; i < possibleMoves.size(); i++) {
-			if ((localX == possibleMoves.get(i).getX()) && (localY == possibleMoves.get(i).getY())) {
+		for (int i = 0; i < numberMoves(); i++) {
+			if (localX == possibleMoves.get(i).getX() && localY == possibleMoves.get(i).getY()) {
 				return possibleMoves.get(i).getmType();
 			}
 		}
@@ -149,7 +140,7 @@ public class MoveCreator {
 	}
 
 	public boolean isKingCapture() {
-		for (int i = 0; i < possibleMoves.size(); i++) {
+		for (int i = 0; i < numberMoves(); i++) {
 			if(possibleMoves.get(i).getTargetPiece()==null){
 				continue;
 			}else if(possibleMoves.get(i).getTargetPiece().getType() == PieceType.KING){

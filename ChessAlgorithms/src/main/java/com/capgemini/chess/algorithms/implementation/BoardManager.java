@@ -232,6 +232,14 @@ public class BoardManager {
 		this.board.setPieceAt(null, lastMove.getTo());
 	}
 
+	/**
+	 * 
+	 * @param from
+	 * @param to
+	 * @return correct move if all conditions are fulfilled
+	 * @throws InvalidMoveException
+	 * @throws KingInCheckException
+	 */
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 
 		// Checking if field is on board
@@ -310,7 +318,9 @@ public class BoardManager {
 			for (int j = 0; j < Board.SIZE; j++) {
 				Coordinate from = new Coordinate(i, j);
 				Piece movingPiece = board.getPieceAt(from);
-				if (movingPiece != null && movingPiece.getColor() == nextMoveColor) {
+				if (movingPiece != null && movingPiece.getColor() == nextMoveColor) {		
+					probeMove.setFrom(new Coordinate(-1, -1));
+					probeMove.setTo(new Coordinate(-1, -1));
 					CheckingMoves checking = new CheckingMoves(board, from, probeMove);
 					MoveCreator generatedMoves = checking.generateMoves();
 					
@@ -324,11 +334,12 @@ public class BoardManager {
 						probeMove.setMovedPiece(movingPiece);
 
 						boolean kingInCheck = isKingInCheck(nextMoveColor);
-						counter++;
+//						counter++;
 						if (!kingInCheck || counter >= 16) {
 							return true;
 						}
 					}
+					counter++;
 				}
 			}
 		}
