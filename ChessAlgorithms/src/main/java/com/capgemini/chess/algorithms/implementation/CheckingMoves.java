@@ -8,10 +8,12 @@ import com.capgemini.chess.algorithms.data.generated.Board;
 public class CheckingMoves {
 	private Board board;
 	private Coordinate from;
+	private MoveCoordinates moveCoord;
 	
-	public CheckingMoves(Board board, Coordinate from) {
+	public CheckingMoves(Board board, Coordinate from, MoveCoordinates moveCoord) {
 		this.board=board;
 		this.from=from;
+		this.moveCoord=moveCoord;
 	}
 	
 	public MoveCreator generateMoves(){
@@ -28,7 +30,7 @@ public class CheckingMoves {
 		}
 
 		// Checking situation of the field
-		movesCreator.boardCond(board, from, movingPiece.getColor());
+		movesCreator.boardCond(board, from, movingPiece.getColor(),moveCoord);
 
 		// Removing invalid moves for PAWN
 		if (movingPiece.getType() == PieceType.PAWN) {

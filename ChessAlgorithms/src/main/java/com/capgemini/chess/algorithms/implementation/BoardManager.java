@@ -1,7 +1,9 @@
 package com.capgemini.chess.algorithms.implementation;
 
-import java.util.ArrayList;
+import java.text.Normalizer.Form;
+import java.time.format.TextStyle;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
@@ -24,6 +26,7 @@ import com.capgemini.chess.algorithms.implementation.exceptions.KingInCheckExcep
 public class BoardManager {
 
 	private Board board = new Board();
+	private MoveCoordinates probeMove=new MoveCoordinates();
 
 	public BoardManager() {
 		initBoard();
@@ -235,7 +238,7 @@ public class BoardManager {
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 
 		// Checking if field is on board
-		if ((from.getX() < 0 || from.getX() > 7) || (from.getY() < 0 || from.getY() > 7)) {
+		if ((from.getX() < 0 || from.getX() >= Board.SIZE) || (from.getY() < 0 || from.getY() >= Board.SIZE)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 
@@ -251,7 +254,10 @@ public class BoardManager {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
 		
-		CheckingMoves checking=new CheckingMoves(board, from);
+		probeMove.setStart(new Coordinate(-1,-1));
+		probeMove.setStop(new Coordinate(-1,-1));
+		
+		CheckingMoves checking=new CheckingMoves(board, from, probeMove);
 		MoveCreator generatedMoves=checking.generateMoves();
 		
 		
@@ -259,6 +265,9 @@ public class BoardManager {
 		if (!generatedMoves.containMove(from, to)) {
 			throw new InvalidMoveException("InvalidMoveException: ");
 		}
+		
+		probeMove.setStart(from);
+		probeMove.setStop(to);
 		
 		boolean kingInCheck=isKingInCheck(recentColor);
 		if(kingInCheck){
@@ -279,38 +288,82 @@ public class BoardManager {
 
 	private boolean isKingInCheck(Color kingColor) {
 
-		// TODO please add implementation here
-		int piecesCounter = 0;
+		int counter = 0;
 		for (int i = 0; i < Board.SIZE; i++) {
 			for (int j = 0; j < Board.SIZE; j++) {
-				Piece movingPiece = board.getPieceAt(new Coordinate(i, j));
-				if (movingPiece == null) {
-					continue;
-				} else {
-					if (movingPiece.getColor() == kingColor) {
-						continue;
-					} else {
-						Coordinate from = new Coordinate(i, j);
-						CheckingMoves checking = new CheckingMoves(board, from);
-						MoveCreator generatedMoves = checking.generateMoves();
-						piecesCounter++;
-						if (generatedMoves.isKingCapture()) {
-							return true;
-						}else if(piecesCounter>16){
-							break;
-						}
+				Coordinate from = new Coordinate(i, j);
+				Piece movingPiece = board.getPieceAt(from);
+				if (movingPiece != null && movingPiece.getColor() != kingColor) {
+					CheckingMoves checking = new CheckingMoves(board, from, probeMove);
+					MoveCreator generatedMoves = checking.generateMoves();
+					counter++;
+					if (generatedMoves.isKingCapture()) {
+						return true;
+					} else if (counter >= 16) {
+						return false;
 					}
 				}
 			}
 		}
+		
+//		int piecesCounter = 0;
+//		for (int i = 0; i < Board.SIZE; i++) {
+//			for (int j = 0; j < Board.SIZE; j++) {
+//				Piece movingPiece = board.getPieceAt(new Coordinate(i, j));
+//				if (movingPiece == null) {
+//					continue;
+//				} else {
+//					if (movingPiece.getColor() == kingColor) {
+//						continue;
+//					} else {
+//						Coordinate from = new Coordinate(i, j);
+//						CheckingMoves checking = new CheckingMoves(board, from, moveCoord);
+//						MoveCreator generatedMoves = checking.generateMoves();
+//						piecesCounter++;
+//						if (generatedMoves.isKingCapture()) {
+//							return true;
+//						}else if(piecesCounter>=16){
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+		
 		return false;
 	}
 
 	private boolean isAnyMoveValid(Color nextMoveColor) {
 
 		// TODO please add implementation here
-
-		return false;
+		int counter=0;
+		for(int i=0;i<Board.SIZE;i++){
+			for(int j=0;j<Board.SIZE;j++){
+				Coordinate from =new Coordinate(i, j);
+				Piece movingPiece=board.getPieceAt(from);
+				if(movingPiece!=null&&movingPiece.getColor()==nextMoveColor){
+					CheckingMoves checking=new CheckingMoves(board, from, probeMove);
+					MoveCreator generatedMoves=checking.generateMoves();
+					for(int k=0;k<generatedMoves.numberMoves();k++){
+						int globalX=from.getX()+generatedMoves.getSelectedMove(k).getX();
+						int globalY=from.getY()+generatedMoves.getSelectedMove(k).getY();
+						Coordinate to=new Coordinate(globalX, globalY);
+						probeMove.setStart(from);
+						probeMove.setStop(to);
+						boolean kingInCheck=isKingInCheck(nextMoveColor);
+						
+						counter++;
+						if(kingInCheck){
+							return false;
+						}else if(counter>=16){
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return true;
+//		return false;
 	}
 
 	private Color calculateNextMoveColor() {

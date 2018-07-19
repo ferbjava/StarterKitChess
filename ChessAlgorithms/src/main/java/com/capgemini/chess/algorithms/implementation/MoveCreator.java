@@ -40,14 +40,20 @@ public class MoveCreator {
 		}
 	}
 	
-	public void boardCond(Board board, Coordinate start, Color recentColor) {
+	public void boardCond(Board board, Coordinate start, Color recentColor, MoveCoordinates moveCoord) {
 		Piece targetPiece = null;
 		int i = 0;
 		while (i < possibleMoves.size()) {
 			int globalX = start.getX() + possibleMoves.get(i).getX();
 			int globalY = start.getY() + possibleMoves.get(i).getY();
 			Coordinate globalPos = new Coordinate(globalX, globalY);
-			targetPiece = board.getPieceAt(globalPos);
+			if(globalPos.equals(moveCoord.getStart())){
+				targetPiece=null;
+			}else if(globalPos.equals(moveCoord.getStop())){
+				targetPiece=Piece.BLACK_PAWN;
+			}else{
+				targetPiece = board.getPieceAt(globalPos);
+			}
 			if (targetPiece == null) {
 				i++;
 				continue;
@@ -150,5 +156,12 @@ public class MoveCreator {
 			}
 		}
 		return false;
+	}
+
+	public PossibleMove getSelectedMove(int index) {
+		if(index>=0&&index<numberMoves()){
+			return possibleMoves.get(index);
+		}
+		return null;
 	}
 }
